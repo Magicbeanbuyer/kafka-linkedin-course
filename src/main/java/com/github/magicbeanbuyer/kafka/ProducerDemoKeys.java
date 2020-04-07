@@ -1,16 +1,18 @@
 package com.github.magicbeanbuyer.kafka;
 
 import org.apache.kafka.clients.producer.*;
+import org.apache.kafka.common.protocol.types.Field;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Properties;
+import java.util.concurrent.ExecutionException;
 
-public class ProducerDemoWithCallBack {
-    public static void main(String[] args) {
+public class ProducerDemoKeys {
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
         // log
-        Logger logger = LoggerFactory.getLogger(ProducerDemoWithCallBack.class);
+        Logger logger = LoggerFactory.getLogger(ProducerDemoKeys.class);
 
         // server address
         String bootstrapServers = "localhost:9092";
@@ -25,10 +27,16 @@ public class ProducerDemoWithCallBack {
         KafkaProducer<String, String> producer = new KafkaProducer<String, String> (properties);
 
         // send message
-        for (int i=0; i<10; i++) {
+        for (int i=0; i<15; i++) {
             // create a message
+            String topic = "secondTopic";
+            String value = "hy, this is a beautiful " + Integer.toString(i);
+            String key = "id_" + Integer.toString(i);
+
             ProducerRecord<String, String> record =
-                    new ProducerRecord<String, String>("secondTopic","Hello World from Java! " + Integer.toString(i));
+                    new ProducerRecord<String, String>(topic, key, value);
+
+            logger.info("key: " + key);
 
             producer.send(record, new Callback() {
                 @Override
@@ -43,7 +51,7 @@ public class ProducerDemoWithCallBack {
                         logger.error("Error while producing", e);
                     }
                 }
-            });
+            }).get();
         }
 
         //flush data and close producer
